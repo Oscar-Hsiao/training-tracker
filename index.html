@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>教育訓練與證照管理系統 — 公信電子</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBFBFA;--bg2:#fff;--bg3:#F7F6F3;
+  --border:#EAEAEA;--border2:#DDDBD6;
+  --text:#2F3437;--text2:#787774;--text3:#A8A29E;
+  --blue:#1F6C9F;--blue-bg:#E1F3FE;
+  --green:#346538;--green-bg:#EDF3EC;
+  --yellow:#956400;--yellow-bg:#FBF3DB;
+  --red:#AF4040;--red-bg:#FCEAEA;
+  --purple:#6B4FA0;--purple-bg:#EFEAF7;
+  --gold:#C9A24B;
+  --font:'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;
+  --font-serif:'Noto Serif TC',-apple-system,serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+/* Sidebar */
+#sidebar{width:220px;min-height:100vh;background:var(--text);position:fixed;top:0;left:0;padding:0;z-index:100;display:flex;flex-direction:column}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.sb-logo img{height:34px;width:auto;border-radius:6px;background:#fff;padding:3px}
+.sb-titlebox .sb-company{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:.1em;margin-bottom:2px}
+.sb-titlebox .sb-title{font-size:14px;font-weight:700;color:#fff;font-family:var(--font-serif)}
+.sb-titlebox .sb-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+.sb-nav{padding:14px 10px;display:flex;flex-direction:column;gap:3px;flex:1}
+.sb-btn{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:rgba(255,255,255,.55);font-size:13px;cursor:pointer;text-align:left;width:100%;transition:all .15s;font-family:inherit}
+.sb-btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85)}
+.sb-btn.active{background:rgba(255,255,255,.12);color:#fff;font-weight:600}
+/* Main */
+#main{margin-left:220px;flex:1;padding:28px 32px;max-width:calc(100vw - 220px)}
+/* Cards */
+.card{background:var(--bg2);border-radius:12px;border:1px solid var(--border);padding:20px 24px;margin-bottom:16px}
+.metric-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.metric-card{background:var(--bg2);border-radius:10px;border:1px solid var(--border);padding:16px 20px}
+.metric-label{font-size:12px;color:var(--text2);margin-bottom:6px}
+.metric-value{font-size:26px;font-weight:700;font-family:var(--font-serif)}
+.metric-unit{font-size:12px;color:var(--text2);margin-top:2px}
+.section-title{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;font-weight:600;color:var(--text2);font-size:12px;border-bottom:1px solid var(--border)}
+td{padding:8px 10px;border-bottom:1px solid var(--bg3);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+/* Form */
+.form-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px}
+.form-group{display:flex;flex-direction:column;gap:4px;min-width:90px}
+.form-group.flex1{flex:1}
+.form-label{font-size:12px;color:var(--text2)}
+input,select,textarea{border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);background:#fff;font-family:inherit;width:100%}
+input:focus,select:focus{outline:2px solid var(--blue);border-color:transparent}
+/* Buttons */
+.btn{padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500;border:none;font-family:inherit;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#185a85}
+.btn-danger{background:#fff;color:var(--red);border:1px solid var(--red)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg3)}
+/* Badge / pill */
+.badge{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600}
+.pill{display:inline-block;border-radius:9999px;padding:3px 10px;font-size:12px;font-weight:600}
+.pill-ok{background:var(--green-bg);color:var(--green)}
+.pill-warn{background:var(--yellow-bg);color:var(--yellow)}
+.pill-bad{background:var(--red-bg);color:var(--red)}
+/* Tabs */
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tab{padding:8px 16px;border-radius:8px;border:none;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.tab.active{background:var(--blue);color:#fff;font-weight:600}
+.tab:not(.active){background:transparent;color:var(--text2)}
+.tab:not(.active):hover{background:var(--bg3)}
+/* Toast */
+#toast{position:fixed;top:20px;right:20px;z-index:9999;background:var(--green);color:#fff;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none;max-width:300px}
+/* Page header */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px}
+.page-title{font-size:22px;font-weight:700;font-family:var(--font-serif)}
+.page-sub{font-size:13px;color:var(--text2);margin-top:4px}
+.header-controls{display:flex;gap:8px;align-items:center}
+.empty{color:var(--text2);font-size:13px;padding:24px 0;text-align:center}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media (max-width:900px){.metric-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div id="sidebar">
+  <div class="sb-logo">
+    <img src="assets/clientron-logo.png" alt="Clientron logo">
+    <div class="sb-titlebox">
+      <div class="sb-company">公信電子</div>
+      <div class="sb-title">教育訓練與證照管理</div>
+      <div class="sb-sub">職業安全衛生</div>
+    </div>
+  </div>
+  <div class="sb-nav" id="nav"></div>
+</div>
+
+<main id="main"></main>
+
+<script>
+// ═══════════════════════════════════════════════
+// 資料
+// ═══════════════════════════════════════════════
+const STAFF_KEY='train_staff', RECORD_KEY='train_records', CERTREQ_KEY='train_certreq', META_KEY='train_meta';
+
+// 法定 / 常見需回訓證照（依公司規模 180 人預估，請依實際作業內容調整「所需人數」）
+const DEFAULT_CERT_TYPES=[
+  {id:'osh_a',name:'職業安全衛生業務主管（甲級）',cycle:2,required:1,note:'事業單位勞工人數達一定規模應置甲級人員，請依實際勞檢分類核對'},
+  {id:'osh_b',name:'職業安全衛生業務主管（乙級）',cycle:2,required:1,note:''},
+  {id:'osh_mgr',name:'職業安全衛生管理員',cycle:2,required:1,note:'規模較大事業單位需設管理員協助業務主管'},
+  {id:'first_aid',name:'急救人員',cycle:3,required:4,note:'勞工人數超過50人者，每50人應置1人（180人≈4人）'},
+  {id:'fire_mgr',name:'防火管理人',cycle:2,required:1,note:'消防法規定一定規模建築物應置防火管理人'},
+  {id:'forklift',name:'堆高機操作人員',cycle:3,required:2,note:'如有使用堆高機之場域，依使用班次設置'},
+  {id:'low_voltage',name:'低壓電工',cycle:3,required:1,note:'自行從事電氣維修作業時需具證'},
+  {id:'organic_solvent',name:'有機溶劑作業主管',cycle:3,required:0,note:'如有相關作業時設置'},
+  {id:'confined_space',name:'缺氧作業主管',cycle:3,required:0,note:'如有局限空間作業時設置'},
+  {id:'first_aid_cpr',name:'急救人員CPR+AED複訓',cycle:1,required:4,note:'部分縣市消防局建議每年複訓'},
+];
+
+const DEFAULT_STAFF=[
+  {id:'s1',no:'A0012',name:'王小明',div:'總管理處',dept:'總務部',title:'總務專員'},
+  {id:'s2',no:'A0035',name:'陳美玲',div:'總管理處',dept:'人資部',title:'人資主管'},
+  {id:'s3',no:'A0078',name:'李志偉',div:'製造處',dept:'生產一課',title:'課長'},
+  {id:'s4',no:'A0102',name:'張雅婷',div:'製造處',dept:'品保部',title:'品保工程師'},
+];
+
+const DEFAULT_RECORDS=[
+  {id:'r1',staffId:'s2',certId:'osh_b',certName:'',certDate:'2023-05-10',hours:42,lastRefresh:'2023-05-10',cycle:2},
+  {id:'r2',staffId:'s1',certId:'first_aid',certName:'',certDate:'2024-03-01',hours:18,lastRefresh:'2024-03-01',cycle:3},
+  {id:'r3',staffId:'s3',certId:'forklift',certName:'',certDate:'2022-06-15',hours:18,lastRefresh:'2022-06-15',cycle:3},
+];
+
+function loadJSON(key,fallback){
+  try{const s=localStorage.getItem(key);return s?JSON.parse(s):JSON.parse(JSON.stringify(fallback));}
+  catch(e){return JSON.parse(JSON.stringify(fallback));}
+}
+function saveJSON(key,v){try{localStorage.setItem(key,JSON.stringify(v));}catch(e){}}
+
+let STAFF=loadJSON(STAFF_KEY,DEFAULT_STAFF);
+let RECORDS=loadJSON(RECORD_KEY,DEFAULT_RECORDS);
+let CERTS=loadJSON(CERTREQ_KEY,DEFAULT_CERT_TYPES);
+let META=loadJSON(META_KEY,{totalEmployees:180});
+
+function saveAll(){saveJSON(STAFF_KEY,STAFF);saveJSON(RECORD_KEY,RECORDS);saveJSON(CERTREQ_KEY,CERTS);saveJSON(META_KEY,META);}
+
+// ═══════════════════════════════════════════════
+// 共用工具
+// ═══════════════════════════════════════════════
+function esc(s){return String(s!==null&&s!==undefined?s:'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function addYears(iso,years){
+  if(!iso)return'';
+  const d=new Date(iso);
+  d.setFullYear(d.getFullYear()+Number(years||0));
+  return d.toISOString().slice(0,10);
+}
+function daysUntil(iso){
+  if(!iso)return null;
+  const d=new Date(iso+'T00:00:00'),now=new Date();now.setHours(0,0,0,0);
+  return Math.round((d-now)/86400000);
+}
+function nextDue(r){
+  const base=r.lastRefresh||r.certDate;
+  return addYears(base,r.cycle);
+}
+function statusOf(r){
+  const due=nextDue(r);
+  const d=daysUntil(due);
+  if(d===null)return{label:'未設定',cls:'pill-warn',due};
+  if(d<0)return{label:'已過期 '+Math.abs(d)+' 天',cls:'pill-bad',due};
+  if(d<=90)return{label:'即將到期（剩 '+d+' 天）',cls:'pill-warn',due};
+  return{label:'正常',cls:'pill-ok',due};
+}
+function certName(r){
+  const c=CERTS.find(c=>c.id===r.certId);
+  return c?c.name:(r.certName||'未分類');
+}
+function staffName(id){const s=STAFF.find(x=>x.id===id);return s?s:{name:'(未知)',no:'',div:'',dept:'',title:''};}
+function toast(msg,type){
+  if(type===undefined)type='success';
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.background=type==='success'?'var(--green)':'var(--red)';
+  el.style.display='block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>{el.style.display='none';},2800);
+}
+
+// ═══════════════════════════════════════════════
+// Navigation
+// ═══════════════════════════════════════════════
+const NAVS=[
+  {id:'dashboard',label:'總覽儀表板'},
+  {id:'staff',label:'人員管理'},
+  {id:'records',label:'訓練／證照紀錄'},
+  {id:'certreq',label:'法定證照需求設定'},
+];
+let currentTab='dashboard';
+function renderNav(){
+  const el=document.getElementById('nav');el.innerHTML='';
+  NAVS.forEach(n=>{
+    const btn=document.createElement('button');
+    btn.className='sb-btn'+(currentTab===n.id?' active':'');
+    btn.textContent=n.label;
+    btn.onclick=()=>{currentTab=n.id;renderNav();renderMain();};
+    el.appendChild(btn);
+  });
+}
+function renderMain(){
+  if(currentTab==='dashboard')pageDashboard();
+  else if(currentTab==='staff')pageStaff();
+  else if(currentTab==='records')pageRecords();
+  else if(currentTab==='certreq')pageCertReq();
+}
+
+// ═══════════════════════════════════════════════
+// 儀表板
+// ═══════════════════════════════════════════════
+function pageDashboard(){
+  const total=RECORDS.length;
+  let warnCount=0,badCount=0;
+  RECORDS.forEach(r=>{const st=statusOf(r);if(st.cls==='pill-bad')badCount++;else if(st.cls==='pill-warn')warnCount++;});
+
+  // 法定證照需求總覽
+  const certRows=CERTS.map(c=>{
+    const recs=RECORDS.filter(r=>r.certId===c.id);
+    const ok=recs.filter(r=>statusOf(r).cls==='pill-ok').length;
+    const warn=recs.filter(r=>statusOf(r).cls==='pill-warn').length;
+    const bad=recs.filter(r=>statusOf(r).cls==='pill-bad').length;
+    const gap=Math.max(c.required-ok,0);
+    return`<tr>
+      <td style="font-weight:600">${esc(c.name)}</td>
+      <td style="color:var(--text2)">每 ${c.cycle} 年</td>
+      <td style="text-align:center">${c.required}</td>
+      <td style="text-align:center;color:var(--green);font-weight:600">${ok}</td>
+      <td style="text-align:center;color:var(--yellow)">${warn}</td>
+      <td style="text-align:center;color:var(--red)">${bad}</td>
+      <td style="text-align:center">${gap>0?`<span class="pill pill-bad">缺 ${gap} 人</span>`:`<span class="pill pill-ok">已足額</span>`}</td>
+      <td style="font-size:12px;color:var(--text2)">${esc(c.note||'')}</td>
+    </tr>`;
+  }).join('');
+
+  // 即將到期 / 已過期清單
+  const alertRecs=RECORDS.map(r=>({r,st:statusOf(r)})).filter(x=>x.st.cls!=='pill-ok').sort((a,b)=>(daysUntil(a.st.due)||0)-(daysUntil(b.st.due)||0));
+  const alertRows=alertRecs.map(({r,st})=>{
+    const s=staffName(r.staffId);
+    return`<tr>
+      <td style="font-weight:600">${esc(s.name)}</td>
+      <td style="font-size:12px;color:var(--text2)">${esc(s.no)} ／ ${esc(s.dept)}</td>
+      <td>${esc(certName(r))}</td>
+      <td style="font-size:12px;color:var(--text2)">${esc(st.due||'-')}</td>
+      <td><span class="pill ${st.cls}">${st.label}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('main').innerHTML=`
+    <div class="page-header">
+      <div><div class="page-title">教育訓練與證照總覽</div>
+        <div class="page-sub">公信電子股份有限公司　職業安全衛生教育訓練／證照管理</div></div>
+      <div class="header-controls">
+        <div class="form-group" style="min-width:140px"><div class="form-label">公司總人數</div>
+          <input type="number" value="${META.totalEmployees}" onchange="updateTotalEmployees(this.value)"></div>
+      </div>
+    </div>
+    <div class="metric-grid">
+      ${metricCard('公司總人數',META.totalEmployees,'人','var(--blue)')}
+      ${metricCard('已建檔人員',STAFF.length,'人','var(--blue)')}
+      ${metricCard('證照／訓練紀錄',total,'筆','var(--text)')}
+      ${metricCard('即將到期(90天內)',warnCount,'筆','var(--yellow)')}
+      ${metricCard('已過期',badCount,'筆','var(--red)')}
+    </div>
+
+    <div class="card">
+      <div class="section-title">法定／常見需回訓證照 — 需求與覆蓋狀況</div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>證照／訓練項目</th><th>回訓週期</th><th>所需人數</th><th>合格(正常)</th><th>即將到期</th><th>已過期</th><th>缺口</th><th>備註</th></tr></thead>
+        <tbody>${certRows}</tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">需追蹤事項（即將到期／已過期，依到期日排序）</div>
+      ${alertRows?`<div style="overflow-x:auto"><table>
+        <thead><tr><th>姓名</th><th>工號／部門</th><th>證照／訓練項目</th><th>下次回訓日</th><th>狀態</th></tr></thead>
+        <tbody>${alertRows}</tbody>
+      </table></div>`:'<div class="empty">目前沒有即將到期或已過期的證照</div>'}
+    </div>`;
+}
+function metricCard(label,value,unit,color){
+  return`<div class="metric-card"><div class="metric-label">${label}</div><div class="metric-value" style="color:${color}">${value}</div><div class="metric-unit">${unit}</div></div>`;
+}
+function updateTotalEmployees(v){META.totalEmployees=+v||0;saveAll();renderMain();}
+
+// ═══════════════════════════════════════════════
+// 人員管理
+// ═══════════════════════════════════════════════
+function pageStaff(){
+  const rows=STAFF.map(s=>{
+    const recCount=RECORDS.filter(r=>r.staffId===s.id).length;
+    return`<tr>
+      <td style="font-family:var(--mono);font-size:12px">${esc(s.no)}</td>
+      <td style="font-weight:600">${esc(s.name)}</td>
+      <td>${esc(s.div)}</td>
+      <td>${esc(s.dept)}</td>
+      <td>${esc(s.title)}</td>
+      <td style="text-align:center">${recCount}</td>
+      <td><button class="btn btn-danger" onclick="delStaff('${s.id}')">刪除</button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('main').innerHTML=`
+    <div class="page-header"><div><div class="page-title">人員管理</div>
+      <div class="page-sub">新增／管理員工基本資料（姓名、工號、處室、部門、職稱）</div></div></div>
+    <div class="card">
+      <div class="section-title">新增人員</div>
+      <div class="form-row">
+        <div class="form-group"><div class="form-label">工號</div><input id="ns-no" placeholder="A0001" style="width:110px"></div>
+        <div class="form-group"><div class="form-label">姓名</div><input id="ns-name" placeholder="姓名" style="width:100px"></div>
+        <div class="form-group"><div class="form-label">處室</div><input id="ns-div" placeholder="如：製造處" style="width:120px"></div>
+        <div class="form-group"><div class="form-label">部門</div><input id="ns-dept" placeholder="如：生產一課" style="width:120px"></div>
+        <div class="form-group flex1"><div class="form-label">職稱</div><input id="ns-title" placeholder="如：課長 / 職業安全衛生管理員"></div>
+        <div class="form-group" style="justify-content:flex-end"><button class="btn btn-primary" onclick="addStaff()">新增</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">人員清單（${STAFF.length} 人）</div>
+      ${STAFF.length===0?'<div class="empty">尚無人員，請使用上方表單新增</div>':
+      `<div style="overflow-x:auto"><table>
+        <thead><tr><th>工號</th><th>姓名</th><th>處室</th><th>部門</th><th>職稱</th><th>證照筆數</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`}
+    </div>`;
+}
+function addStaff(){
+  const name=document.getElementById('ns-name').value.trim();
+  const no=document.getElementById('ns-no').value.trim();
+  if(!name){toast('請輸入姓名','error');return;}
+  STAFF.push({
+    id:'s_'+Date.now(),
+    no,name,
+    div:document.getElementById('ns-div').value.trim(),
+    dept:document.getElementById('ns-dept').value.trim(),
+    title:document.getElementById('ns-title').value.trim()
+  });
+  saveAll();toast('已新增人員');pageStaff();
+}
+function delStaff(id){
+  if(!confirm('刪除此人員將同時刪除其所有證照紀錄，確定刪除？'))return;
+  STAFF=STAFF.filter(s=>s.id!==id);
+  RECORDS=RECORDS.filter(r=>r.staffId!==id);
+  saveAll();toast('已刪除','info');pageStaff();
+}
+
+// ═══════════════════════════════════════════════
+// 訓練／證照紀錄
+// ═══════════════════════════════════════════════
+function pageRecords(){
+  const rows=RECORDS.map(r=>{
+    const s=staffName(r.staffId);
+    const st=statusOf(r);
+    return`<tr>
+      <td style="font-weight:600">${esc(s.name)}<div style="font-size:11px;color:var(--text2)">${esc(s.no)} ／ ${esc(s.dept)}／${esc(s.title)}</div></td>
+      <td>${esc(certName(r))}</td>
+      <td style="font-size:12px;color:var(--text2)">${esc(r.certDate||'-')}</td>
+      <td style="text-align:center">${r.hours||0}</td>
+      <td style="font-size:12px;color:var(--text2)">${esc(r.cycle)} 年</td>
+      <td style="font-size:12px;color:var(--text2)">${esc(r.lastRefresh||r.certDate||'-')}</td>
+      <td style="font-size:12px;font-weight:600">${esc(st.due||'-')}</td>
+      <td><span class="pill ${st.cls}">${st.label}</span></td>
+      <td><button class="btn btn-ghost" onclick="refreshRecord('${r.id}')">登記回訓</button>
+          <button class="btn btn-danger" onclick="delRecord('${r.id}')">刪除</button></td>
+    </tr>`;
+  }).join('');
+
+  const certOptions=CERTS.map(c=>`<option value="${c.id}" data-cycle="${c.cycle}">${esc(c.name)}</option>`).join('')+`<option value="">其他（自行輸入）</option>`;
+  const staffOptions=STAFF.map(s=>`<option value="${s.id}">${esc(s.name)}（${esc(s.no)}／${esc(s.dept)}）</option>`).join('');
+
+  document.getElementById('main').innerHTML=`
+    <div class="page-header"><div><div class="page-title">訓練／證照紀錄</div>
+      <div class="page-sub">記錄人員的取證日期、訓練時數、回訓週期與下次回訓日（自動計算）</div></div></div>
+    <div class="card">
+      <div class="section-title">新增紀錄</div>
+      ${STAFF.length===0?'<div class="empty">請先到「人員管理」新增人員</div>':`
+      <div class="form-row">
+        <div class="form-group flex1"><div class="form-label">人員</div><select id="nr-staff">${staffOptions}</select></div>
+        <div class="form-group flex1"><div class="form-label">證照／訓練項目</div><select id="nr-cert" onchange="syncCertCycle()">${certOptions}</select></div>
+        <div class="form-group"><div class="form-label">自訂名稱</div><input id="nr-customname" placeholder="若選「其他」請填" style="width:140px"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><div class="form-label">訓練時數</div><input id="nr-hours" type="number" placeholder="小時" style="width:90px"></div>
+        <div class="form-group"><div class="form-label">取證日期</div><input id="nr-certdate" type="date" value="${todayISO()}" style="width:140px"></div>
+        <div class="form-group"><div class="form-label">回訓週期(年)</div><input id="nr-cycle" type="number" value="3" style="width:90px"></div>
+        <div class="form-group"><div class="form-label">上次回訓日期</div><input id="nr-lastrefresh" type="date" style="width:140px"></div>
+        <div class="form-group" style="justify-content:flex-end"><button class="btn btn-primary" onclick="addRecord()">新增</button></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2)">💡 若未填「上次回訓日期」，系統以取證日期計算下次回訓日；下次回訓日 = 上次回訓日 + 回訓週期。</div>
+      `}
+    </div>
+    <div class="card">
+      <div class="section-title">所有紀錄（${RECORDS.length} 筆）</div>
+      ${RECORDS.length===0?'<div class="empty">尚無紀錄</div>':
+      `<div style="overflow-x:auto"><table>
+        <thead><tr><th>人員</th><th>證照／訓練項目</th><th>取證日</th><th>訓練時數</th><th>回訓週期</th><th>上次回訓日</th><th>下次回訓日</th><th>狀態</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`}
+    </div>`;
+}
+function syncCertCycle(){
+  const sel=document.getElementById('nr-cert');
+  const opt=sel.options[sel.selectedIndex];
+  const cycle=opt.getAttribute('data-cycle');
+  if(cycle)document.getElementById('nr-cycle').value=cycle;
+}
+function addRecord(){
+  const staffId=document.getElementById('nr-staff').value;
+  const certId=document.getElementById('nr-cert').value;
+  const customName=document.getElementById('nr-customname').value.trim();
+  const certDate=document.getElementById('nr-certdate').value;
+  const lastRefresh=document.getElementById('nr-lastrefresh').value;
+  const cycle=+document.getElementById('nr-cycle').value||3;
+  const hours=+document.getElementById('nr-hours').value||0;
+  if(!staffId||!certDate){toast('請選擇人員並填取證日期','error');return;}
+  if(!certId&&!customName){toast('請選擇證照項目或填寫自訂名稱','error');return;}
+  RECORDS.push({id:'r_'+Date.now(),staffId,certId:certId||null,certName:certId?'':customName,certDate,hours,lastRefresh:lastRefresh||certDate,cycle});
+  saveAll();toast('已新增紀錄');pageRecords();
+}
+function refreshRecord(id){
+  const r=RECORDS.find(x=>x.id===id);if(!r)return;
+  const d=prompt('請輸入本次回訓日期 (YYYY-MM-DD)：',todayISO());
+  if(!d)return;
+  r.lastRefresh=d;
+  saveAll();toast('已登記回訓，下次回訓日已更新');pageRecords();
+}
+function delRecord(id){
+  RECORDS=RECORDS.filter(r=>r.id!==id);
+  saveAll();toast('已刪除','info');pageRecords();
+}
+
+// ═══════════════════════════════════════════════
+// 法定證照需求設定
+// ═══════════════════════════════════════════════
+function pageCertReq(){
+  const rows=CERTS.map((c,i)=>`
+    <tr>
+      <td><input value="${esc(c.name)}" onchange="updateCert(${i},'name',this.value)"></td>
+      <td><input type="number" value="${c.cycle}" style="width:70px" onchange="updateCert(${i},'cycle',this.value)"></td>
+      <td><input type="number" value="${c.required}" style="width:70px" onchange="updateCert(${i},'required',this.value)"></td>
+      <td><input value="${esc(c.note||'')}" onchange="updateCert(${i},'note',this.value)"></td>
+      <td><button class="btn btn-danger" onclick="delCert(${i})">刪除</button></td>
+    </tr>`).join('');
+
+  document.getElementById('main').innerHTML=`
+    <div class="page-header"><div><div class="page-title">法定證照需求設定</div>
+      <div class="page-sub">依公司規模（${META.totalEmployees} 人）與作業內容調整各項證照／訓練的回訓週期與所需人數</div></div></div>
+    <div class="card">
+      <table>
+        <thead><tr><th>證照／訓練項目</th><th>回訓週期(年)</th><th>所需人數</th><th>備註</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="form-row" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="form-group flex1"><div class="form-label">證照／訓練名稱</div><input id="nc-name" placeholder="例：危險物品作業主管"></div>
+        <div class="form-group"><div class="form-label">回訓週期(年)</div><input id="nc-cycle" type="number" value="3" style="width:90px"></div>
+        <div class="form-group"><div class="form-label">所需人數</div><input id="nc-required" type="number" value="1" style="width:90px"></div>
+        <div class="form-group flex1"><div class="form-label">備註</div><input id="nc-note" placeholder="適用條件說明"></div>
+        <div class="form-group" style="justify-content:flex-end"><button class="btn btn-primary" onclick="addCert()">新增項目</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">說明</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">
+        本頁列出之證照／訓練項目為依公信電子公司規模（約 ${META.totalEmployees} 人，辦公室為主）常見之職業安全衛生法定要求預估，<br>
+        實際所需人數會因事業單位之行業分類、作業性質（如是否使用堆高機、有機溶劑、局限空間等）而不同，<br>
+        請依勞動檢查機構認定之事業單位類別與實際作業內容調整「回訓週期」與「所需人數」欄位。
+      </div>
+    </div>`;
+}
+function updateCert(i,field,value){
+  if(field==='cycle'||field==='required')CERTS[i][field]=+value||0;
+  else CERTS[i][field]=value;
+  saveAll();pageCertReq();
+}
+function addCert(){
+  const name=document.getElementById('nc-name').value.trim();
+  if(!name){toast('請輸入名稱','error');return;}
+  CERTS.push({id:'custom_'+Date.now(),name,cycle:+document.getElementById('nc-cycle').value||3,required:+document.getElementById('nc-required').value||0,note:document.getElementById('nc-note').value.trim()});
+  saveAll();toast('已新增項目');pageCertReq();
+}
+function delCert(i){
+  const c=CERTS[i];
+  if(RECORDS.some(r=>r.certId===c.id)){toast('此項目已有紀錄使用中，無法刪除','error');return;}
+  CERTS.splice(i,1);saveAll();pageCertReq();
+}
+
+// Init
+renderNav();
+renderMain();
+</script>
+</body>
+</html>
