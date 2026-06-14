@@ -187,7 +187,6 @@ input:focus,select:focus{outline:2px solid var(--blue);border-color:transparent}
 
 <div id="sidebar">
   <div class="sb-logo">
-    <img src="assets/clientron-logo.png" alt="Clientron logo">
     <div class="sb-titlebox">
       <div class="sb-company">公信電子</div>
       <div class="sb-title">職業安全衛生管理</div>
@@ -246,7 +245,7 @@ let RECORDS=loadJSON(RECORD_KEY,DEFAULT_RECORDS);
 let CERTS=loadJSON(CERTREQ_KEY,DEFAULT_CERT_TYPES);
 let META=loadJSON(META_KEY,{totalEmployees:180});
 
-function saveAll(){saveJSON(STAFF_KEY,STAFF);saveJSON(RECORD_KEY,RECORDS);saveJSON(CERTREQ_KEY,CERTS);saveJSON(META_KEY,META);}
+function saveAll(){META.lastUpdated=new Date().toISOString();saveJSON(STAFF_KEY,STAFF);saveJSON(RECORD_KEY,RECORDS);saveJSON(CERTREQ_KEY,CERTS);saveJSON(META_KEY,META);}
 
 // ═══════════════════════════════════════════════
 // 共用工具
@@ -363,7 +362,8 @@ function pageDashboard(){
   document.getElementById('main').innerHTML=`
     <div class="page-header">
       <div><div class="page-title">教育訓練與證照管理</div>
-        <div class="page-sub">公信電子股份有限公司　職業安全衛生教育訓練／證照總覽</div></div>
+        <div class="page-sub">公信電子股份有限公司　職業安全衛生教育訓練／證照總覽</div>
+        <div class="page-sub">資料最後更新：${META.lastUpdated?new Date(META.lastUpdated).toLocaleString('zh-TW',{hour12:false}):'尚無紀錄'}　｜　網站存活自動檢查：每日上午約 9:09</div></div>
       <div class="header-controls admin-only">
         <div class="form-group" style="min-width:140px"><div class="form-label">公司總人數</div>
           <input type="number" value="${META.totalEmployees}" onchange="updateTotalEmployees(this.value)"></div>
