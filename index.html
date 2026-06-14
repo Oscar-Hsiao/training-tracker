@@ -41,8 +41,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .ab-btn:hover{background:var(--bg3)}
 .ab-login{color:var(--blue);border-color:var(--blue)}
 #main{padding-top:72px}
-#loginModal{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:999;display:flex;align-items:center;justify-content:center}
-#loginModal.hidden{display:none}
+#loginModal,#signModal{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:999;display:flex;align-items:center;justify-content:center}
+#loginModal.hidden,#signModal.hidden{display:none}
+.sign-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.sign-row label{font-size:12px;color:var(--text2);width:96px;flex-shrink:0}
 .lm-box{background:#fff;border-radius:12px;padding:24px;width:280px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
 .lm-title{font-size:16px;font-weight:700;font-family:var(--font-serif)}
 .lm-input{border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:14px;font-family:inherit}
@@ -362,11 +364,18 @@ function pageDashboard(){
   document.getElementById('main').innerHTML=`
     <div class="page-header">
       <div><div class="page-title">教育訓練與證照管理</div>
-        <div class="page-sub">公信電子股份有限公司　職業安全衛生教育訓練／證照總覽</div>
-        <div class="page-sub">資料最後更新：${META.lastUpdated?new Date(META.lastUpdated).toLocaleString('zh-TW',{hour12:false}):'尚無紀錄'}　｜　網站存活自動檢查：每日上午約 9:09</div></div>
-      <div class="header-controls admin-only">
-        <div class="form-group" style="min-width:140px"><div class="form-label">公司總人數</div>
-          <input type="number" value="${META.totalEmployees}" onchange="updateTotalEmployees(this.value)"></div>
+        <div class="page-sub">公信電子股份有限公司　職業安全衛生教育訓練／證照總覽</div></div>
+      <div style="text-align:right">
+        <div class="page-sub">資料最後更新：${META.lastUpdated?new Date(META.lastUpdated).toLocaleString('zh-TW',{hour12:false}):'尚無紀錄'}</div>
+        <div class="page-sub">網站存活自動檢查：每日上午約 9:09</div>
+        <div class="header-controls admin-only" style="margin-top:8px;justify-content:flex-end">
+          <div class="form-group" style="min-width:140px"><div class="form-label">公司總人數</div>
+            <input type="number" value="${META.totalEmployees}" onchange="updateTotalEmployees(this.value)"></div>
+          <div class="form-group" style="justify-content:flex-end">
+            <div class="form-label">&nbsp;</div>
+            <button class="btn btn-ghost" onclick="syncTotalEmployees()">同步為已建檔人員數（${STAFF.length}）</button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="metric-grid">
@@ -378,7 +387,10 @@ function pageDashboard(){
     </div>
 
     <div class="card">
-      <div class="section-title">法定／常見需回訓證照 — 需求與覆蓋狀況</div>
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>法定／常見需回訓證照 — 需求與覆蓋狀況</span>
+        <button class="btn btn-ghost" onclick="exportCertReqCSV()">⬇ 匯出 CSV</button>
+      </div>
       <div style="overflow-x:auto"><table>
         <thead><tr><th>證照／訓練項目</th><th>回訓週期</th><th>所需人數</th><th>合格(正常)</th><th>即將到期</th><th>已過期</th><th>缺口</th><th>備註</th></tr></thead>
         <tbody>${certRows}</tbody>
@@ -396,7 +408,31 @@ function pageDashboard(){
 function metricCard(label,value,unit,color){
   return`<div class="metric-card"><div class="metric-label">${label}</div><div class="metric-value" style="color:${color}">${value}</div><div class="metric-unit">${unit}</div></div>`;
 }
+function csvField(v){
+  const s=String(v===null||v===undefined?'':v).replace(/"/g,'""');
+  return`"${s}"`;
+}
+function exportCertReqCSV(){
+  const head=['證照／訓練項目','回訓週期(年)','所需人數','正常','即將到期','已過期','缺口','備註'];
+  const lines=[head.map(csvField).join(',')];
+  CERTS.forEach(c=>{
+    const recs=RECORDS.filter(r=>r.certId===c.id);
+    const ok=recs.filter(r=>statusOf(r).cls==='pill-ok').length;
+    const warn=recs.filter(r=>statusOf(r).cls==='pill-warn').length;
+    const bad=recs.filter(r=>statusOf(r).cls==='pill-bad').length;
+    const gap=Math.max(c.required-ok,0);
+    lines.push([c.name,c.cycle,c.required,ok,warn,bad,gap,c.note||''].map(csvField).join(','));
+  });
+  const csv='﻿'+lines.join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='法定證照需求覆蓋狀況_'+todayISO()+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 function updateTotalEmployees(v){META.totalEmployees=+v||0;saveAll();renderMain();}
+function syncTotalEmployees(){META.totalEmployees=STAFF.length;saveAll();toast('已將公司總人數同步為已建檔人員數');renderMain();}
 
 // ═══════════════════════════════════════════════
 // 人員管理
@@ -417,7 +453,9 @@ function pageStaff(){
 
   document.getElementById('main').innerHTML=`
     <div class="page-header"><div><div class="page-title">人員管理</div>
-      <div class="page-sub">新增／管理員工基本資料（姓名、工號、處室、部門、職稱）</div></div></div>
+      <div class="page-sub">新增／管理員工基本資料（姓名、工號、處室、部門、職稱）</div></div>
+      <div class="header-controls"><button class="btn btn-ghost" onclick="exportStaffCSV()">⬇ 匯出 CSV</button></div>
+    </div>
     <div class="card admin-only">
       <div class="section-title">新增人員</div>
       <div class="form-row">
@@ -452,6 +490,21 @@ function addStaff(){
   });
   saveAll();toast('已新增人員');pageStaff();
 }
+function exportStaffCSV(){
+  const head=['工號','姓名','處室','部門','職稱','證照筆數'];
+  const lines=[head.map(csvField).join(',')];
+  STAFF.forEach(s=>{
+    const recCount=RECORDS.filter(r=>r.staffId===s.id).length;
+    lines.push([s.no,s.name,s.div,s.dept,s.title,recCount].map(csvField).join(','));
+  });
+  const csv='﻿'+lines.join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='人員清單_'+todayISO()+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 function delStaff(id){
   if(!confirm('刪除此人員將同時刪除其所有證照紀錄，確定刪除？'))return;
   STAFF=STAFF.filter(s=>s.id!==id);
@@ -462,6 +515,20 @@ function delStaff(id){
 // ═══════════════════════════════════════════════
 // 訓練／證照紀錄
 // ═══════════════════════════════════════════════
+// 教育訓練簽核欄位：依一般教育訓練簽到/結業記錄慣例，需受訓人、直接主管、
+// 職業安全衛生人員（承辦/核可）三方簽名確認
+const SIGN_ROLES=['受訓人','直接主管','職業安全衛生人員'];
+
+function signSummary(r){
+  const sigs=r.signatures||{};
+  return SIGN_ROLES.map(role=>{
+    const sg=sigs[role];
+    if(sg&&sg.name)return`<div>✅ ${esc(role)}：${esc(sg.name)}（${esc(sg.date||'')}）</div>`;
+    return`<div style="color:var(--text3)">⬜ ${esc(role)}：未簽核</div>`;
+  }).join('')
+  + (r.attachment?`<div style="margin-top:4px"><a href="${r.attachment.dataUrl}" download="${esc(r.attachment.name)}">📎 ${esc(r.attachment.name)}</a></div>`:'');
+}
+
 function pageRecords(){
   const rows=RECORDS.map(r=>{
     const s=staffName(r.staffId);
@@ -475,7 +542,10 @@ function pageRecords(){
       <td style="font-size:12px;color:var(--text2)">${esc(r.lastRefresh||r.certDate||'-')}</td>
       <td style="font-size:12px;font-weight:600">${esc(st.due||'-')}</td>
       <td><span class="pill ${st.cls}">${st.label}</span></td>
-      <td class="admin-only"><button class="btn btn-ghost" onclick="refreshRecord('${r.id}')">登記回訓</button>
+      <td style="font-size:11px;line-height:1.6">${signSummary(r)}</td>
+      <td class="admin-only">
+          <button class="btn btn-ghost" onclick="refreshRecord('${r.id}')">登記回訓</button>
+          <button class="btn btn-ghost" onclick="openSignModal('${r.id}')">簽核／附件</button>
           <button class="btn btn-danger" onclick="delRecord('${r.id}')">刪除</button></td>
     </tr>`;
   }).join('');
@@ -485,7 +555,9 @@ function pageRecords(){
 
   document.getElementById('main').innerHTML=`
     <div class="page-header"><div><div class="page-title">訓練／證照紀錄</div>
-      <div class="page-sub">記錄人員的取證日期、訓練時數、回訓週期與下次回訓日（自動計算）</div></div></div>
+      <div class="page-sub">記錄人員的取證日期、訓練時數、回訓週期與下次回訓日（自動計算）</div></div>
+      <div class="header-controls"><button class="btn btn-ghost" onclick="exportRecordsCSV()">⬇ 匯出 CSV</button></div>
+    </div>
     <div class="card admin-only">
       <div class="section-title">新增紀錄</div>
       ${STAFF.length===0?'<div class="empty">請先到「人員管理」新增人員</div>':`
@@ -508,9 +580,21 @@ function pageRecords(){
       <div class="section-title">所有紀錄（${RECORDS.length} 筆）</div>
       ${RECORDS.length===0?'<div class="empty">尚無紀錄</div>':
       `<div style="overflow-x:auto"><table>
-        <thead><tr><th>人員</th><th>證照／訓練項目</th><th>取證日</th><th>訓練時數</th><th>回訓週期</th><th>上次回訓日</th><th>下次回訓日</th><th>狀態</th><th class="admin-only"></th></tr></thead>
+        <thead><tr><th>人員</th><th>證照／訓練項目</th><th>取證日</th><th>訓練時數</th><th>回訓週期</th><th>上次回訓日</th><th>下次回訓日</th><th>狀態</th><th>簽核／附件</th><th class="admin-only"></th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>`}
+    </div>
+
+    <!-- 簽核 Modal -->
+    <div id="signModal" class="hidden">
+      <div class="lm-box" style="width:340px">
+        <div class="lm-title">簽核與附件</div>
+        <div id="signFields"></div>
+        <div class="form-group"><div class="form-label">上傳結業證書／附件</div><input type="file" id="sign-file" accept="image/*,.pdf"></div>
+        <div id="sign-current" style="font-size:12px;color:var(--text2)"></div>
+        <button class="lm-btn" onclick="saveSign()">儲存</button>
+        <button class="lm-cancel" onclick="closeSignModal()">取消</button>
+      </div>
     </div>`;
 }
 function syncCertCycle(){
@@ -542,6 +626,78 @@ function refreshRecord(id){
 function delRecord(id){
   RECORDS=RECORDS.filter(r=>r.id!==id);
   saveAll();toast('已刪除','info');pageRecords();
+}
+
+// ── 簽核 / 附件 ──
+let signTargetId=null;
+function openSignModal(id){
+  signTargetId=id;
+  const r=RECORDS.find(x=>x.id===id);if(!r)return;
+  const sigs=r.signatures||{};
+  document.getElementById('signFields').innerHTML=SIGN_ROLES.map(role=>{
+    const sg=sigs[role]||{};
+    return`<div class="sign-row"><label>${esc(role)}</label>
+      <input data-role="${esc(role)}" class="sign-name" placeholder="簽名／姓名" value="${esc(sg.name||'')}" style="flex:1">
+      <input data-role="${esc(role)}" type="date" class="sign-date" value="${esc(sg.date||'')}" style="width:130px"></div>`;
+  }).join('');
+  document.getElementById('sign-current').textContent=r.attachment?('目前附件：'+r.attachment.name):'目前無附件';
+  document.getElementById('sign-file').value='';
+  document.getElementById('signModal').classList.remove('hidden');
+}
+function closeSignModal(){
+  document.getElementById('signModal').classList.add('hidden');
+  signTargetId=null;
+}
+function saveSign(){
+  const r=RECORDS.find(x=>x.id===signTargetId);if(!r)return;
+  const sigs={};
+  document.querySelectorAll('#signFields .sign-row').forEach(row=>{
+    const role=row.querySelector('.sign-name').getAttribute('data-role');
+    const name=row.querySelector('.sign-name').value.trim();
+    let date=row.querySelector('.sign-date').value;
+    if(name&&!date)date=todayISO();
+    if(name)sigs[role]={name,date};
+  });
+  r.signatures=sigs;
+  const file=document.getElementById('sign-file').files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      r.attachment={name:file.name,dataUrl:e.target.result};
+      saveAll();toast('已儲存簽核與附件');closeSignModal();pageRecords();
+    };
+    reader.readAsDataURL(file);
+  }else{
+    saveAll();toast('已儲存簽核');closeSignModal();pageRecords();
+  }
+}
+document.addEventListener('click',function(e){
+  const m=document.getElementById('signModal');
+  if(m&&e.target===m)closeSignModal();
+});
+
+// ── CSV 匯出 ──
+function exportRecordsCSV(){
+  const head=['姓名','工號','處室','部門','職稱','證照／訓練項目','訓練時數','取證日期','回訓週期(年)','上次回訓日','下次回訓日','狀態',
+    ...SIGN_ROLES.map(r=>r+'簽名'),...SIGN_ROLES.map(r=>r+'簽核日期'),'附件檔名'];
+  const lines=[head.map(csvField).join(',')];
+  RECORDS.forEach(r=>{
+    const s=staffName(r.staffId);
+    const st=statusOf(r);
+    const sigs=r.signatures||{};
+    const row=[s.name,s.no,s.div,s.dept,s.title,certName(r),r.hours||0,r.certDate||'',r.cycle,r.lastRefresh||r.certDate||'',st.due||'',st.label,
+      ...SIGN_ROLES.map(role=>(sigs[role]&&sigs[role].name)||''),
+      ...SIGN_ROLES.map(role=>(sigs[role]&&sigs[role].date)||''),
+      (r.attachment&&r.attachment.name)||''];
+    lines.push(row.map(csvField).join(','));
+  });
+  const csv='﻿'+lines.join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='教育訓練證照紀錄_'+todayISO()+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ═══════════════════════════════════════════════
