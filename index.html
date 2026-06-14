@@ -34,8 +34,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .sb-btn:hover{background:rgba(255,255,255,.1);color:#fff}
 .sb-btn.active{background:rgba(255,255,255,.15);color:#fff;font-weight:600}
 /* Admin bar */
-#adminBar{position:fixed;top:0;left:220px;right:0;height:44px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;padding:0 24px;gap:12px;z-index:90;font-size:13px}
-#adminBar .ab-label{color:var(--text2);margin-right:auto;font-weight:600}
+#adminBar{position:fixed;top:0;left:220px;right:0;height:44px;background:#fff;display:flex;align-items:center;justify-content:flex-end;padding:0 24px;gap:12px;z-index:90;font-size:13px}
+#adminBar .ab-label{color:var(--text);margin-right:auto;font-weight:700;font-size:22px;font-family:var(--font-serif)}
 .ab-badge{background:var(--green-bg);color:var(--green);border-radius:6px;padding:4px 10px;font-weight:600;font-size:12px}
 .ab-btn{border:1px solid var(--border2);background:#fff;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text)}
 .ab-btn:hover{background:var(--bg3)}
@@ -363,8 +363,7 @@ function pageDashboard(){
 
   document.getElementById('main').innerHTML=`
     <div class="page-header">
-      <div><div class="page-title">教育訓練與證照管理</div>
-        <div class="page-sub">公信電子股份有限公司　職業安全衛生教育訓練／證照總覽</div></div>
+      <div><div class="page-sub">公信電子股份有限公司　職業安全衛生教育訓練／證照總覽</div></div>
       <div style="text-align:right">
         <div class="page-sub">資料最後更新：${META.lastUpdated?new Date(META.lastUpdated).toLocaleString('zh-TW',{hour12:false}):'尚無紀錄'}</div>
         <div class="page-sub">網站存活自動檢查：每日上午約 9:09</div>
